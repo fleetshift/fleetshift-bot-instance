@@ -1,0 +1,10 @@
+{
+  "fleetshift-user-interface": {
+    "url": "https://github.com/platex-rehor-bot/fleetshift-user-interface.git",
+    "upstream": "https://github.com/fleetshift/fleetshift-user-interface.git"
+  },
+  "fleetshift-poc": {
+    "url": "https://github.com/platex-rehor-bot/fleetshift-poc.git",
+    "upstream": "https://github.com/fleetshift/fleetshift-poc.git"
+  }
+}
