@@ -20,7 +20,7 @@ parameters:
 - name: BOT_SPRINT_PREFIX
   value: ""
 - name: BOT_INCLUDE_BACKLOG
-  value: "false"
+  value: "true"
 - name: BOT_INSTANCE_ID
   value: ""
 - name: BOT_CONFIG_REPO
@@ -234,3 +234,26 @@ objects:
         protocol: UDP
       - port: 5353
         protocol: TCP
+
+# --- KEDA Cron Scaler: working hours schedule ---
+- apiVersion: keda.sh/v1alpha1
+  kind: ScaledObject
+  metadata:
+    name: ${BOT_NAME}-cron-scaler
+    labels:
+      app.kubernetes.io/name: ${BOT_NAME}
+      app.kubernetes.io/part-of: devbot
+  spec:
+    scaleTargetRef:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: ${BOT_NAME}
+    minReplicaCount: 0
+    maxReplicaCount: 1
+    triggers:
+    - type: cron
+      metadata:
+        timezone: "Europe/Prague"
+        start: "0 9 * * 2-4"
+        end: "0 23 * * 2-4"
+        desiredReplicas: "1"
