@@ -20,7 +20,7 @@ parameters:
 - name: BOT_SPRINT_PREFIX
   value: ""
 - name: BOT_INCLUDE_BACKLOG
-  value: "false"
+  value: "true"
 - name: BOT_INSTANCE_ID
   value: ""
 - name: BOT_CONFIG_REPO
