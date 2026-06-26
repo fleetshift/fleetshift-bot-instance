@@ -82,7 +82,8 @@ task build:server
 
 - No mocks. Real instances or in-mem fakes. Contract tests validate interfaces.
 - No `time.Sleep` in tests. Clock injection or `synctest`.
-- No `docker` CLI. Use `podman`. Images: `task image:build`.
+- No container runtime available. `task image:build` and anything Docker/podman-dependent will NOT work. Env will be set up later.
+- `go test ./...` works — default suite uses SQLite in-mem + in-process gRPC, no containers. Only `-tags integration` needs Docker (3 files in `addon/kind/`), skip those.
 - No removing comments unless truly dead. Update > delete.
 - No editing `internal/gen/`. Edit `.proto` → `task protogen`.
 - No `golangci-lint` — not configured. `go fmt` + `go vet` suffice.
@@ -103,10 +104,12 @@ task build:server
 task build:all         # server + CLI
 task build:server      # server only
 task protogen          # buf generate (skips if unchanged)
-task image:build       # podman build
 task -l                # list all targets
 go test -count=1 ./... # unit + contract (from fleetshift-server/)
-go test -tags integration ./internal/addon/kind/  # Docker-heavy
 buf lint               # proto lint
 go fmt ./...           # format
+
+# NOT AVAILABLE — no container runtime in agent env
+# task image:build
+# go test -tags integration ./internal/addon/kind/
 ```
