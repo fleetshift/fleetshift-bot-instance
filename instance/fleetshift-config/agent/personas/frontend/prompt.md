@@ -1,90 +1,48 @@
 ## Frontend Guidelines
 
-FleetShift UI — React 19 monorepo. Rspack + Module Federation + Scalprum micro-frontend plugins. PF6.
+Work in `stolostron/ocm-fleet`, the shared OCM Fleet monorepo. Clone the bot fork `https://github.com/platex-rehor-bot/ocm-fleet.git`; base task branches on current `upstream/main` and open PRs from the fork to `stolostron/ocm-fleet`, base `main`. UI work uses this same checkout and PR workflow.
 
 ### Before changes
-`npm install` first. Fails → STOP, Jira comment, don't proceed.
 
-### Monorepo
+- Read root `AGENTS.md` and `docs/ui/AGENTS.md`; use their links for UI design, extension contracts, styling, testing, and diagrams. Keep this persona as an overlay on the repository's current guidance.
+- Run `npm install` from the monorepo root. If required guidance or dependency setup fails, stop and report the blocker on the ticket.
+- Code and package manifests take precedence over stale documentation. Current UI packages use React 19, PatternFly 6, Rspack, Module Federation, and Scalprum.
 
-| Pkg | What |
-|-----|------|
-| `packages/gui` | Shell SPA — routing, OIDC/Keycloak auth, search (Orama), layout, dnd-kit. No biz logic. |
-| `packages/mock-ui-plugins` | All plugins: `src/plugins/<name>-plugin/`. 13 plugins (overview, management, core, signing, routing, gcphcp, kind, setup, configuration, virtualization, security, observability, settings). |
-| `packages/common` | Shared types/utils/hooks. Dual CJS/ESM. |
-| `packages/build-utils` | Rspack helpers — PF import transforms, `PfModuleReplacementPlugin`, MF shared entries. No build step. |
-| `packages/e2e` | Playwright. **Not functional yet — do NOT run.** |
+### Workspace orientation
 
-### Dev rules
-- PF6 components. Use `hcc-patternfly-data-view` MCP for docs/examples/source.
-- React 19. Functional, hooks, composition. No classes.
-- TS strict. `no-explicit-any` enforced → `unknown` + narrowing. Tests: `as unknown as X` OK.
-- LSP `get_diagnostics` before commit.
-- **npm scripts only** — `npm test`, `npm run lint`, `npm run lint:fix`, `npm run lint:css`. Never `npx jest`/`npx eslint` direct.
-- **Sequential npm commands only** — parallel → OOMKill.
+| Path | Role / Nx project |
+|------|-------------------|
+| `client/web/` | Shell SPA / `web` |
+| `extensions/core/client/` | Core UI plugins / `plugins` |
+| `extensions/kind/client/` | Kind provider plugin / `@ocm-fleet/kind-plugin` |
+| `sdk/common/` | Shared types, helpers, hooks / `common` |
+| `sdk/build-utils/` | Build and extension utilities / `build-utils` |
+| `e2e/web/` | Playwright E2E / `e2e-web` |
 
-### Code conventions
+### Development rules
 
-**Components**: Small files. 1 component, 1 job. Split ~250 lines. Repeated JSX → extract + iterate. `useMemo`/`useCallback` only when needed.
+- Use `hcc-patternfly-data-view` MCP for PatternFly component docs, examples, and source. Prefer PF components and utilities; follow current `ocm-fleet-*` scoping and vendor-override rules in `docs/ui/AGENTS.md`.
+- Use functional React components, hooks, and composition. Keep components small and state local unless shared state is required. Follow existing typed API helpers and `@ocm-fleet/common` patterns.
+- Keep TypeScript strict; prefer `unknown` plus narrowing over `any`. Follow repository import ordering, formatting, and extension contracts.
+- Use npm and Nx targets, not guessed root scripts or direct test/lint tool invocations. Run resource-heavy verification sequentially in the bot environment.
+- Keep relevant `docs/ui/` documentation and `docs/ui/diagrams/` aligned with design changes, verifying implementation facts against source.
 
-**State**: Cross-plugin → Scalprum shared stores via `@fleetshift/common`. Intra-plugin → React hooks (local). API → `api.ts` per plugin, typed fetch against `/v1/*`.
+### Verification
 
-**Plugins**: Dir `src/plugins/<name>-plugin/` — components, `api.ts`, hooks, types. `DynamicRemotePlugin` in `rspack.config.ts`. `ScalprumComponent` `module` must match `exposedModules` key — no `./` prefix.
-
-**Imports**: Side-effect → node_modules → local. `simple-import-sort` enforced. `npm run lint:fix` to sort.
-
-**Formatting**: ESLint flat config + Prettier (double quotes, trailing commas). Stylelint for CSS/SCSS.
-
-### SCSS
-
-BEM + prefix. Prevents MF collisions.
-
-| Scope | Prefix |
-|-------|--------|
-| Shell | `ome-` |
-| Core | `ome-core-` |
-| Overview | `ome-overview-` |
-| GCP HCP | `ome-gcphcp-` |
-| Settings | `ome-settings-` |
-| Others | `ome-<short>-` (see AGENTS.md) |
-
-PF utility classes first (`pf-v6-u-mb-md`, `pf-v6-u-display-flex`). Custom `ome-*` only for multi-property or uncovered cases.
-
-`clsx` for conditional classes. No template literals.
-
-Vendor overrides (`pf-*`) ONLY nested inside `ome-*` — never top-level.
-
-### Build
-
-Rspack 2.x + `builtin:swc-loader`. PF barrel → granular via SWC `transformImport` + `PfModuleReplacementPlugin` from `@fleetshift/build-utils`. `@fleetshift/common` → MF `sharedModules`. Entry: async boundary (`index.ts` → `import("./bootstrap")`).
-
-### Testing
-
-Vitest + `@testing-library/react`. Pattern: `packages/*/src/**/__tests__/**/*.test.ts`. Edge cases, not happy-path snapshots. `fake-indexeddb` available for IDB mocking.
-
-### Verification — UI changes
-
-MUST visually verify before PR. App on port 8085. `/debug` for plugin troubleshooting. `chrome-devtools` MCP (`browser_screenshot`, `browser_snapshot`). Don't build just to verify — LSP + browser MCP.
-
-Never commit screenshots. Upload via `/gh-release-upload` → ref URLs in PR.
-
-### Verification — non-UI
-LSP diagnostics + `npm run lint` + `npm test`.
-
-### Commands
+Run commands from the monorepo root. Inspect current projects/targets before selecting checks:
 
 ```bash
-npm run build:all    # common → plugins → GUI → merge
-npm run lint         # eslint + stylelint
-npm run lint:fix     # auto-fix
-npm run lint:css     # stylelint only
-npm test             # vitest
+npm exec nx show projects
+npm exec nx show project web
+npm exec nx show project plugins
+npm exec nx run web:lint
+npm exec nx run web:lint:css
+npm exec nx run plugins:lint
+npm exec nx run plugins:lint:css
+npm exec nx run common:test
 ```
 
-### Key deps
-
-React 19, react-router-dom 7, PF react-core/table/data-view/charts/component-groups 6, Scalprum, @module-federation/enhanced 2, @dnd-kit/react, @orama/orama, motion, oidc-client-ts + react-oidc-context, leaflet + react-leaflet, clsx, PF react-code-editor + react-log-viewer.
-
-### Diagrams
-
-`docs/diagrams/` — LikeC4 `.c4`. Code > diagrams. Changed relevant code → validate `.c4` matches.
+- Choose additional checks for affected packages; inspect `@ocm-fleet/kind-plugin`, `common`, or `build-utils` when changing them.
+- Follow upstream verification guidance: use available LSP diagnostics and browser MCP for UI changes; do not build solely for visual verification. Read current startup/deployment instructions to establish the running app and verify changed flows visually before a PR. If browser access or startup is blocked, report that explicitly.
+- Playwright component targets include `web:test:ct` and `plugins:test:ct`; E2E uses `e2e-web:test:e2e`. Inspect prerequisites and run relevant coverage when available; do not assume E2E is nonfunctional or claim an unrun check passed.
+- Never commit screenshots. When evidence is needed, upload via `/gh-release-upload` and reference URLs in the PR.

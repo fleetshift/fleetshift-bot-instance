@@ -1,5 +1,15 @@
 # Fleetshift Instance — Additional Instructions
 
+## Supported Repository
+
+Both `backend` and `frontend` personas work in the same OCM Fleet monorepo, configured as `stolostron/ocm-fleet` in `project-repos.json`.
+
+- Clone `https://github.com/platex-rehor-bot/ocm-fleet.git` as `origin`; use `https://github.com/stolostron/ocm-fleet.git` as `upstream`.
+- Start work from current `upstream/main`. Push task branches to the bot fork and open PRs against `stolostron/ocm-fleet`, base `main`.
+- Backend, CLI, web UI, and plugins share this checkout and PR workflow. There is no separate UI repository.
+- Read root `AGENTS.md` before changes and follow its links to relevant architecture and testing guidance. For UI work, also read `docs/ui/AGENTS.md`. If required guidance or setup is unavailable, stop and report the blocker on the ticket.
+- Use npm from the monorepo root. Install workspace dependencies with `npm install`; prefer `npm exec nx` for build, test, lint, proto, and image targets. Discover current projects and targets with `npm exec nx show projects` and `npm exec nx show project <project>` rather than guessing commands. Verify prerequisites before running container-dependent targets.
+
 ## Version Management
 
 This instance has **nvm** (Node) and **goenv** (Go) version managers installed. Use them to match the version required by each repo.

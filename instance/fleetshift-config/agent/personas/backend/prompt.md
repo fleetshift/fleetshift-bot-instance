@@ -1,115 +1,41 @@
 ## Backend Guidelines
 
-FleetShift management-plane — Go monorepo. gRPC + grpc-gateway HTTP transcoding. Protobuf (buf). Two modules: `fleetshift-server` (main), `fleetshift-cli` (`fleetctl`).
+Work in `stolostron/ocm-fleet`, the shared OCM Fleet monorepo. Clone the bot fork `https://github.com/platex-rehor-bot/ocm-fleet.git`; base task branches on current `upstream/main` and open PRs from the fork to `stolostron/ocm-fleet`, base `main`.
 
 ### Before changes
 
-Read `AGENTS.md` at repo root — it links to architecture docs and internal design docs that contain rules easy to violate without context. Fails → STOP, Jira comment, don't proceed.
+- Read root `AGENTS.md` and its relevant architecture/API guidance under `docs/design/` and `docs/`.
+- For server changes, read the relevant `server/docs/` guides linked from root: internal architecture, package structure, testing, domain, constructors, observability, and durable workflows. Follow existing layering and patterns rather than duplicating architecture rules here.
+- The Go resource manager lives in `server/`; the TypeScript CLI lives in `client/cli/`. Protobuf sources are under `proto/`. Consult `client/cli/AGENTS.md` for CLI work and `docs/buf.md` for protobuf changes.
+- If required guidance or dependency setup fails, stop and report the blocker on the ticket.
 
-### Repo layout
+### Implementation and tests
 
-| Dir | What |
-|-----|------|
-| `fleetshift-server/` | Management plane server. All server code under `internal/`. |
-| `fleetshift-cli/` | CLI binary (`fleetctl`). `replace` directive → `../fleetshift-server`. |
-| `proto/fleetshift/v1/` | Protobuf definitions (~45 `.proto`). Buf v2. |
-| `deploy/` | `podman/`, `kubernetes/`, `keycloak/` configs. |
-| `poc/` | Proof-of-concept experiments (attestation, gcp-hcp, ocm adapter). |
-| `docs/` | Design docs, API design, OpenAPI output. |
-
-### Server internals (`fleetshift-server/internal/`)
-
-| Pkg | What |
-|-----|------|
-| `domain/` | Aggregates, entities, values, repo interfaces. `*repotest/` = contract tests. |
-| `application/` | Service layer — orchestrates domain, repos, workflows. |
-| `infrastructure/` | Implementations: `sqlite/`, `postgres/`, `oidc/`, `delivery/`, `goworkflows/`, `keyregistry/`. |
-| `transport/` | `grpc/`, `http/` — handlers, middleware. |
-| `addon/` | Addon plugins: `kind/`, `gcphcp/`, `kubernetes/`. |
-| `testserver/` | In-process gRPC test server (SQLite in-mem + stub OIDC). |
-| `testutil/` | Shared test helpers. |
-| `gen/fleetshift/v1/` | Generated proto Go code. **Never edit.** |
-
-### Task lifecycle — cookbook
-
-**1. Orient**
-```
-read ticket → WHAT + WHY
-read relevant docs/ (see AGENTS.md "For how to..." list)
-grep existing patterns → match, don't invent
-```
-
-**2. TDD — write failing test first**
-```bash
-cd fleetshift-server
-go test ./internal/path/to/pkg/ -run TestYourThing -count=1
-```
-Contract tests → `domain/*repotest/`. New repo interface? Add contract tests.
-Integration test → `testserver/testserver.go` (full in-process gRPC, SQLite in-mem).
-
-**3. Implement**
-- Domain logic → `internal/domain/`
-- Service orchestration → `internal/application/`
-- Storage → `internal/infrastructure/sqlite/` or `postgres/`
-- Transport → `internal/transport/grpc/` or `http/`
-- Addons → `internal/addon/<name>/`
-- Proto → edit `proto/fleetshift/v1/*.proto` → `task protogen`
-
-**4. Verify**
-```bash
-# Format — always
-go fmt ./...
-
-# Unit + contract tests — always
-cd fleetshift-server && go test -count=1 ./...
-
-# Integration tests — when touching addon/kind or Docker code
-go test -tags integration -count=1 ./internal/addon/kind/
-
-# Proto lint — when touching .proto
-buf lint
-
-# Build smoke
-task build:server
-```
-
-**5. Commit**
-- Conventional: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`
-- Scope = package: `feat(delivery):`, `fix(sqlite):`
-- Tests + impl together, one logical change per commit.
-
-### Don'ts
-
-- No mocks. Real instances or in-mem fakes. Contract tests validate interfaces.
-- No `time.Sleep` in tests. Clock injection or `synctest`.
-- No container runtime available. `task image:build` and anything Docker/podman-dependent will NOT work. Env will be set up later.
-- `go test ./...` works — default suite uses SQLite in-mem + in-process gRPC, no containers. Only `-tags integration` needs Docker (3 files in `addon/kind/`), skip those.
-- No removing comments unless truly dead. Update > delete.
-- No editing `internal/gen/`. Edit `.proto` → `task protogen`.
-- No `golangci-lint` — not configured. `go fmt` + `go vet` suffice.
-- No `make`. Use `task` (Taskfile). `task -l` for targets.
-
-### Key conventions
-
-- **AIP-aligned APIs** — see `docs/api-design.md`, `docs/buf.md`.
-- **Layering** — domain has no infra imports. Application orchestrates. Transport is thin.
-- **Observer pattern** for instrumentation — see `fleetshift-server/docs/observer-pattern.md`.
-- **Constructors** — see `fleetshift-server/docs/constructors.md`. Don't invent new patterns.
-- **Durable workflows** — see `fleetshift-server/docs/durable-workflows.md`. `goworkflows/` + `memworkflow/` (test).
-- **Modern stdlib** — prefer stdlib crypto, encoding, net/http over third-party.
+- Follow upstream TDD guidance: capture bugs with a failing test before fixing them; cover edge cases.
+- Follow `server/docs/testing.md`: prefer real instances or reusable in-memory fakes, add interface contract tests for alternate implementations, and avoid method-verifying mocks. Use injected clocks or deterministic concurrency instead of `time.Sleep`.
+- Edit protobuf sources and regenerate through Nx; do not hand-edit generated code. Follow upstream API design and layer boundaries.
+- Format Go changes with `go fmt ./...` from the affected Go module (`server/` for resource manager changes). For focused server test iteration, run `go test ./...` from `server/`, narrowing to the affected package as needed.
+- Default server tests exclude integration-tagged Docker-heavy tests. Container-dependent tests need a working runtime and other prerequisites; check availability and report skipped checks with reasons instead of claiming they passed.
+- Preserve useful comments, update relevant design docs when the design changes, and prefer modern standard-library abstractions where appropriate.
 
 ### Commands
 
-```bash
-task build:all         # server + CLI
-task build:server      # server only
-task protogen          # buf generate (skips if unchanged)
-task -l                # list all targets
-go test -count=1 ./... # unit + contract (from fleetshift-server/)
-buf lint               # proto lint
-go fmt ./...           # format
+Run workspace commands from the monorepo root after `npm install`. Prefer Nx for dependency-aware verification:
 
-# NOT AVAILABLE — no container runtime in agent env
-# task image:build
-# go test -tags integration ./internal/addon/kind/
+```bash
+npm exec nx show projects
+npm exec nx show project server
+npm exec nx run server:build
+npm exec nx run server:test
+npm exec nx run cli:build
+npm exec nx run cli:test
+npm exec nx run cli:lint
+npm exec nx run proto:generate
 ```
+
+Choose checks for the changed code. `server:test-integration` is the explicit Nx target for server integration coverage; inspect its current definition and prerequisites before running it. Discover any additional lint, proto, image, or deployment targets from the current workspace instead of assuming scripts exist.
+
+### Commits and PRs
+
+- Conventional commits (`feat:`, `fix:`, `refactor:`, `docs:`, `test:`); use a relevant scope when helpful.
+- Keep tests and implementation together in logical commits. Include actual verification results and any blocked checks in the PR.
