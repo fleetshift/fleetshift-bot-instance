@@ -2,24 +2,37 @@
 
 Custom bot runner instance built on [dev-bot](https://github.com/RedHatInsights/platform-frontend-ai-dev).
 
-## Supported project
+## Supported repositories
 
-This FleetShift instance supports one repository: [OCM Fleet](https://github.com/stolostron/ocm-fleet), a monorepo containing the Go resource manager (`server/`), TypeScript CLI (`client/cli/`), React web UI (`client/web/`), UI plugins (`extensions/core/client/`, `extensions/kind/client/`), shared SDK (`sdk/common/`, `sdk/build-utils/`), and protobuf sources (`proto/`). The UI is part of this monorepo; there is no standalone UI checkout or PR workflow.
+This FleetShift instance supports [OCM Fleet](https://github.com/stolostron/ocm-fleet) and [Scaffolding](https://github.com/scalprum/scaffolding), selected by canonical repository labels. Profile: `instance/fleetshift-config/agent/`; the `backend` persona covers OCM Fleet backend/CLI work, and `frontend` covers OCM Fleet UI and Scaffolding work.
+
+### OCM Fleet
+
+OCM Fleet is a monorepo containing the Go resource manager (`server/`), TypeScript CLI (`client/cli/`), React web UI (`client/web/`), UI plugins (`extensions/core/client/`, `extensions/kind/client/`), shared SDK (`sdk/common/`, `sdk/build-utils/`), and protobuf sources (`proto/`). The UI is part of this monorepo; there is no standalone UI checkout or PR workflow.
 
 - **Canonical repo key:** `stolostron/ocm-fleet`
 - **Bot fork / push destination:** `https://github.com/platex-rehor-bot/ocm-fleet.git`
 - **Upstream / PR destination:** `https://github.com/stolostron/ocm-fleet.git`, base `main`
-- **Profile:** `instance/fleetshift-config/agent/`, with `backend` and `frontend` personas sharing the same repository.
+- **Jira labels:** `ome-ai-bot` and `repo:stolostron/ocm-fleet`
 
 Repository rules live in upstream root `AGENTS.md`; UI-specific rules live in `docs/ui/AGENTS.md`. The workspace uses npm and Nx. Install dependencies at the monorepo root with `npm install`, then discover projects and targets with `npm exec nx show projects` and `npm exec nx show project <project>`. Persona prompts provide focused verification examples rather than a second architecture reference.
 
+### Scaffolding
+
+- **Canonical repo key:** `scalprum/scaffolding`
+- **Bot fork / push destination:** `https://github.com/platex-rehor-bot/scaffolding.git`
+- **Upstream / PR destination:** `https://github.com/scalprum/scaffolding.git`, base `main`
+- **Jira labels:** `ome-ai-bot` and `repo:scalprum/scaffolding`
+
+Scaffolding is an npm/Nx monorepo containing core, react-core, build-utils, react-test-utils, remote-types, and examples packages. Read upstream root `CLAUDE.md` and relevant package READMEs. Match `.nvmrc` and package engines (currently Node >=26 and npm >=11.14.1), run `npm ci` at the root, then discover projects and existing lint/test/typecheck/build targets with `npm exec nx show projects` and `npm exec nx show project <project>`. OCM Fleet paths and UI conventions apply only to OCM Fleet.
+
 ### Configuration rollout
 
-Jira work must use `repo:stolostron/ocm-fleet`. With the new mapping, retired repo labels no longer resolve; replace them rather than adding aliases, including on tickets that have multiple repo labels. The pinned preflight rejects a ticket if any `repo:` label is unmatched. Review active task repository metadata before resuming work against the migrated project.
+Jira work must use `ome-ai-bot` and the selected repository's canonical label: `repo:stolostron/ocm-fleet` or `repo:scalprum/scaffolding`. Retired OCM migration labels (`repo:fleetshift/fleetshift-poc` and `repo:fleetshift/fleetshift-user-interface`) are unsupported; replace them rather than adding aliases, including on tickets that have multiple repo labels. The pinned preflight rejects a ticket if any `repo:` label is unmatched. Review active task repository metadata before resuming work against the migrated project.
 
 The deployment should select `BOT_CONFIG_PATH=instance/fleetshift-config` in the configured instance repository. After merging, verify remote-config sync picks up the updated profile and repo mapping. Instance identity, persona names, runtime/model settings, and deployment tool versions remain managed by their existing configuration.
 
-The pinned repo loader merges repository keys additively: removing a key from this profile does not remove it from an already-generated runtime `project-repos.json`. Verify that the effective map contains only `stolostron/ocm-fleet`; if retired entries remain, roll out a fresh runner filesystem using this profile rather than relying on config sync alone.
+The pinned repo loader merges repository keys additively: removing a key from this profile does not remove it from an already-generated runtime `project-repos.json`. Verify that the effective map contains exactly `stolostron/ocm-fleet` and `scalprum/scaffolding`; if retired entries remain, roll out a fresh runner filesystem using this profile rather than relying on config sync alone.
 
 ## Architecture
 
