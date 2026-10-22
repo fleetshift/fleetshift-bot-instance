@@ -2,5 +2,9 @@
   "stolostron/ocm-fleet": {
     "url": "https://github.com/platex-rehor-bot/ocm-fleet.git",
     "upstream": "https://github.com/stolostron/ocm-fleet.git"
+  },
+  "scalprum/scaffolding": {
+    "url": "https://github.com/platex-rehor-bot/scaffolding.git",
+    "upstream": "https://github.com/scalprum/scaffolding.git"
   }
 }
