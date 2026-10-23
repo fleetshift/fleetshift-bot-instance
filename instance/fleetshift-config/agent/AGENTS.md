@@ -11,6 +11,10 @@
 - Subagents share runner filesystem and inherited tools. Their role permissions do not provide separate OS sandboxes. Keep every brief inside approved repository/workspace boundaries and inspect changes before acting.
 - Current target-repository instructions take precedence over instance role guidance. Backend checkout rules never apply to Scaffolding.
 
+### Jira Claim Fallback
+
+Coordinator attempts normal Jira claim once. If issue is readable and already selected/authorized for work, but assignment, transition, or sprint claim operation fails due to temporary Jira tool or permission issues, proceed with implementation without repeated claim attempts. Leave Jira assignment, status, and sprint unchanged; do not claim success or write fake progress. Include exact failure in final report and PR update. Stop only if issue access, eligibility, or authorization is unclear, conflicting ownership exists, or implementation requires unavailable Jira permission. This fallback covers claim bookkeeping only; it does not bypass task authorization. Workers never claim or modify Jira state.
+
 Use `/home/botuser/repos` for project checkouts, `/home/botuser/data` for persistent task data, and `/tmp/opencode` for task scratch files. These are the deployment-approved external roots; the runner workspace is `/home/botuser/app`.
 
 ## Native Runtime Verification Override
@@ -28,14 +32,14 @@ Select the repository from the ticket's canonical `repo:` label and `project-rep
 - Clone `https://github.com/platex-rehor-bot/ocm-fleet.git` as `origin`; use `https://github.com/stolostron/ocm-fleet.git` as `upstream`.
 - Start work from current `upstream/main`. Push task branches to the bot fork and open PRs against `stolostron/ocm-fleet`, base `main`.
 - Backend, CLI, web UI, and plugins share this checkout and PR workflow. There is no separate UI repository.
-- Read root `AGENTS.md` before changes and follow its links to relevant architecture and testing guidance. For UI work, also read `docs/ui/AGENTS.md`. If required guidance or setup is unavailable, stop and report the blocker on the ticket.
+- Read root `AGENTS.md` before changes and follow its links to relevant architecture and testing guidance. For UI work, also read `docs/ui/AGENTS.md`. Stop and report if required guidance or task authorization is unavailable; optional verification setup being unavailable does not block implementation. Run available checks and report skipped checks accurately.
 - Use npm from the monorepo root. Install workspace dependencies with `npm install`; prefer `npm exec nx` for build, test, lint, proto, and image targets. Discover current projects and targets with `npm exec nx show projects` and `npm exec nx show project <project>` rather than guessing commands. Verify prerequisites before running container-dependent targets.
 
 ### Scaffolding (`scalprum/scaffolding`)
 
 - Clone `https://github.com/platex-rehor-bot/scaffolding.git` as `origin`; use `https://github.com/scalprum/scaffolding.git` as `upstream`. Start from current `upstream/main`, push task branches to the bot fork, and open PRs against `scalprum/scaffolding`, base `main`.
 - Read root `CLAUDE.md` and the relevant package README. This npm/Nx monorepo contains core, react-core, build-utils, react-test-utils, remote-types, and examples packages; follow its own paths and dependency rules rather than OCM Fleet UI conventions.
-- Match `.nvmrc` and package engines (currently Node >=26 and npm >=11.14.1) before running `npm ci` at the root. Discover projects with `npm exec nx show projects` and targets with `npm exec nx show project <project>`, then run relevant existing lint, test, typecheck, or build targets. Do not assume OCM Fleet target names or `docs/ui/` exist. If required guidance or setup is unavailable, stop and report the blocker on the ticket.
+- Prefer `.nvmrc` and package `engines` (currently Node >=26 and npm >=11.14.1). Attempt version-manager installation/use once; if unavailable, use the closest installed Node version and continue. Do not change `.nvmrc`, project engine declarations, package manifests, lockfiles, or npm config. Run `npm ci` at the root. If it fails and engine validation is the sole failure, one retry may use `npm_config_engine_strict=false npm ci`; make no persistent config change. If installation still fails, continue implementation and run checks that work. Discover projects with `npm exec nx show projects` and targets with `npm exec nx show project <project>`, then run relevant existing lint, test, typecheck, or build targets. Do not assume OCM Fleet target names or `docs/ui/` exist. Report actual Node/npm versions, any one-command override, skipped checks and reasons, and compatibility uncertainty. Never report skipped checks as passed.
 
 ## Version Management
 
@@ -43,7 +47,7 @@ This instance has **nvm** (Node) and **goenv** (Go) version managers installed. 
 
 ### Node.js (nvm)
 
-Before working on a repo with `package.json`, check its `.nvmrc` or `engines.node` field and switch if needed:
+Before working on a repo with `package.json`, prefer its `.nvmrc` or `engines.node` field and attempt version-manager installation/use once:
 
 ```bash
 nvm use          # reads .nvmrc if present
@@ -51,7 +55,7 @@ nvm install 20   # install + switch to Node 20
 nvm use default  # back to default (22)
 ```
 
-Default: Node.js 22 LTS. Available globally via `/usr/local/bin/node`.
+If required version cannot be installed or used, choose closest installed Node version and continue implementation. Do not change repository runtime declarations or package/npm configuration. Report actual version and compatibility uncertainty; run available checks and accurately report skips. Default: Node.js 22 LTS. Available globally via `/usr/local/bin/node`.
 
 ### Go (goenv)
 

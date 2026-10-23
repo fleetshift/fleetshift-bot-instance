@@ -19,7 +19,7 @@ Clone bot fork `https://github.com/platex-rehor-bot/ocm-fleet.git`; base task br
 #### Before changes
 
 - Read root `AGENTS.md` and `docs/ui/AGENTS.md`; use their links for UI design, extension contracts, styling, testing, and diagrams. Keep this subagent guidance as an overlay on repository's current instructions.
-- Run `npm install` from monorepo root. If required guidance or dependency setup fails, stop and report blocker to coordinator.
+- Run `npm install` from monorepo root. Stop and report if required guidance or task authorization is unavailable. Failed dependency installation or optional verification setup alone does not block implementation; continue code work, run available checks, and report limitations to coordinator. Never report skipped checks as passed.
 - Code and package manifests take precedence over stale docs. Current UI packages use React 19, PatternFly 6, Rspack, Module Federation, and Scalprum.
 
 #### Workspace orientation
@@ -65,8 +65,8 @@ npm exec nx run common:test
 
 - Clone `https://github.com/platex-rehor-bot/scaffolding.git` with `https://github.com/scalprum/scaffolding.git` as `upstream`. Base task branches on current `upstream/main`.
 - Read root `CLAUDE.md` and relevant package READMEs. The npm/Nx workspace contains core, react-core, build-utils, react-test-utils, remote-types, and examples packages. Follow their current code and manifests; OCM Fleet paths, React 19 assumptions, and PatternFly rules do not apply here.
-- Use `.nvmrc` and package engines as authoritative versions (currently Node >=26 and npm >=11.14.1), then run `npm ci` at root. Discover projects with `npm exec nx show projects` and inspect affected projects with `npm exec nx show project <project>` before running existing lint, test, typecheck, or build targets. Do not assume OCM Fleet targets or `docs/ui/` exist.
-- If required guidance, toolchain, or dependency setup is unavailable, stop and report blocker. Report actual verification results and skipped checks with reasons.
+- Prefer `.nvmrc` and package engines (currently Node >=26 and npm >=11.14.1); attempt version-manager installation/use once. If unavailable, use closest installed Node version and continue. Do not change `.nvmrc`, project engine declarations, package manifests, lockfiles, or npm config. Run `npm ci` at root. If it fails and engine validation is the sole failure, one retry may use `npm_config_engine_strict=false npm ci`; make no persistent config change. If installation still fails, continue implementation and run checks that work. Discover projects with `npm exec nx show projects` and inspect affected projects with `npm exec nx show project <project>` before running existing lint, test, typecheck, or build targets. Do not assume OCM Fleet targets or `docs/ui/` exist.
+- Report actual Node/npm versions, any one-command override, verification results, skipped checks and reasons, and compatibility uncertainty to coordinator. Never claim skipped checks passed.
 
 ### Return contract
 
