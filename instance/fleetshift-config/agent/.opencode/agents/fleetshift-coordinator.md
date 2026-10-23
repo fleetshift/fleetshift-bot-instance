@@ -1,6 +1,7 @@
 ---
 description: Owns FleetShift ticket lifecycle and delegates scoped implementation to native repository specialists.
 mode: primary
+model: rehor-openai/gpt-6.1-sol
 permissions:
   - action: subagent
     resource: "*"
