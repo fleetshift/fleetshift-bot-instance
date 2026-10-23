@@ -1,5 +1,21 @@
 # Fleetshift Instance — Additional Instructions
 
+## Native Persona Instructions
+
+The `backend` and `frontend` persona prompts are loaded by `opencode.json` from `.opencode/instructions/personas/<name>/prompt.md`. They are instruction overlays, not separate agents. When the workflow asks to load or reload `personas/<name>/prompt.md`, use these native instruction resources instead of legacy runner persona files.
+
+- Apply `backend` only to OCM Fleet backend/CLI/protobuf work.
+- Apply `frontend` to OCM Fleet UI work or Scaffolding work, using only its matching repository section.
+- For OCM Fleet full-stack work, apply both. The backend prompt's OCM Fleet checkout rules never apply to Scaffolding. Current target-repository guidance takes precedence over persona overlays.
+
+Use `/home/botuser/repos` for project checkouts, `/home/botuser/data` for persistent task data, and `/tmp/opencode` for task scratch files. These are the deployment-approved external roots; the runner workspace is `/home/botuser/app`.
+
+## Native Runtime Verification Override
+
+OpenCode 2.1.2 has no LSP runtime or tools. This overrides workflow and persona directives to use LSP, including LSP diagnostics before a commit: use the current repository's existing lint, typecheck, compiler, and test targets for diagnostics and verification, and report the commands actually run and their results. Do not claim LSP diagnostics were performed.
+
+The `browser` environment is not selected for this instance. For UI work, use browser/visual verification tools only if available; otherwise report the missing tooling and visual-verification gaps explicitly. Do not claim unavailable visual checks passed.
+
 ## Supported Repositories
 
 Select the repository from the ticket's canonical `repo:` label and `project-repos.json`. Apply only that repository's guidance below. The `backend` persona covers OCM Fleet backend/CLI work; the `frontend` persona covers OCM Fleet UI and Scaffolding work.
