@@ -12,8 +12,8 @@ Configuration has two owners:
 | --- | --- |
 | `instance/fleetshift-config/agent/instance.yaml` | Runtime, provider, model, workflow, and environment selection; synced each cycle. |
 | `instance/fleetshift-config/agent/AGENTS.md` | Native instance guidance alongside shared core/workflow instructions; no Claude assembly strategy. |
-| `instance/fleetshift-config/agent/opencode.json` | Explicit native instruction references for both persona overlays. |
-| `instance/fleetshift-config/agent/.opencode/instructions/personas/{backend,frontend}/prompt.md` | Existing persona names/content, loaded as instructions rather than custom agents. Instance guidance scopes each overlay by repository and task, and replaces legacy workflow persona paths. |
+| `instance/fleetshift-config/agent/opencode.json` | Selects `fleetshift-coordinator` as primary, limits delegation depth to one, and permits delegation only to `backend` and `frontend`. |
+| `instance/fleetshift-config/agent/.opencode/agents/{fleetshift-coordinator,backend,frontend}.md` | Native primary coordinator and two actual subagents. Existing backend/frontend persona guidance is carried in their agent system prompts, with repository scope and worker boundaries. |
 | `instance/fleetshift-config/agent/mcp.json` | Jira endpoint reference plus PatternFly's installed `hcc-pf-mcp` executable; shared memory and optional servers still come from the runner. |
 | `instance/fleetshift-config/opencode-deployment.json` | Deployment-owned native Responses provider, declared Luna model, medium reasoning, environment references, empty `packages` list, and approved external directories. Baked into the image. |
 
@@ -77,7 +77,7 @@ To roll back, pause/drain the runner and hold scheduling again. Restore a Claude
 
 ### Validation scope
 
-Local acceptance covers the pinned Python instance/config loaders and merge behavior, coordinator native profile snapshot/render/validators, persona content and staged instruction references, model/provider/environment references, MCP grants, external-directory policy rendering, JSON/YAML parsing, local OpenShift template processing, and `git diff --check`. See the shared [OpenCode migration guide](https://github.com/OpenShift-Fleet/rehor/blob/e6b0fda738c71b8be694b8711cf32e53eee59c9b/docs/migrations/opencode-migration.md) for native/deployment gates.
+Local acceptance covers the pinned Python instance/config loaders and merge behavior, coordinator native profile snapshot/render/validators, agent definitions and delegation permissions, model/provider/environment references, MCP grants, external-directory policy rendering, JSON/YAML parsing, local OpenShift template processing, and `git diff --check`. See the shared [OpenCode migration guide](https://github.com/OpenShift-Fleet/rehor/blob/e6b0fda738c71b8be694b8711cf32e53eee59c9b/docs/migrations/opencode-migration.md) for native/deployment gates.
 
 Local config/render checks do not prove Linux image installation, real gateway allowlisting/authentication, MCP executable startup/connectivity, model inference, or live filesystem enforcement. Those require the fresh-image staging gates above. OpenCode 2.1.2 has no LSP runtime; use repository lint/typecheck/test commands instead of claiming LSP diagnostics. The existing environment selection does not include `browser`; UI/browser verification remains dependent on available browser tooling and must be reported as blocked if unavailable.
 

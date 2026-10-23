@@ -1,12 +1,15 @@
 # Fleetshift Instance — Additional Instructions
 
-## Native Persona Instructions
+## Native Subagents
 
-The `backend` and `frontend` persona prompts are loaded by `opencode.json` from `.opencode/instructions/personas/<name>/prompt.md`. They are instruction overlays, not separate agents. When the workflow asks to load or reload `personas/<name>/prompt.md`, use these native instruction resources instead of legacy runner persona files.
+`opencode.json` selects `fleetshift-coordinator` as default primary agent, limits delegation depth to one, and grants it access only to `backend` and `frontend`. These are actual native subagents in `.opencode/agents/`, not instruction snippets. When workflow asks to load/reload `personas/<name>/prompt.md`, select and invoke matching native subagent instead of reading legacy persona paths.
 
-- Apply `backend` only to OCM Fleet backend/CLI/protobuf work.
-- Apply `frontend` to OCM Fleet UI work or Scaffolding work, using only its matching repository section.
-- For OCM Fleet full-stack work, apply both. The backend prompt's OCM Fleet checkout rules never apply to Scaffolding. Current target-repository guidance takes precedence over persona overlays.
+- Invoke `backend` only for scoped OCM Fleet backend/CLI/protobuf implementation.
+- Invoke `frontend` for scoped OCM Fleet UI or Scaffolding implementation, using only its matching repository section.
+- For OCM Fleet full-stack work, delegate sequentially when workers share checkout; avoid concurrent writers.
+- Coordinator owns Jira/task lifecycle, status, integration, review, commit/push, PR lifecycle, and cycle completion. Workers implement assigned scope, return evidence, and cannot recursively delegate.
+- Subagents share runner filesystem and inherited tools. Their role permissions do not provide separate OS sandboxes. Keep every brief inside approved repository/workspace boundaries and inspect changes before acting.
+- Current target-repository instructions take precedence over instance role guidance. Backend checkout rules never apply to Scaffolding.
 
 Use `/home/botuser/repos` for project checkouts, `/home/botuser/data` for persistent task data, and `/tmp/opencode` for task scratch files. These are the deployment-approved external roots; the runner workspace is `/home/botuser/app`.
 

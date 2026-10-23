@@ -1,7 +1,30 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "instructions": [
-    ".opencode/instructions/personas/backend/prompt.md",
-    ".opencode/instructions/personas/frontend/prompt.md"
-  ]
+  "default_agent": "fleetshift-coordinator",
+  "experimental": {
+    "subagent_depth": 1
+  },
+  "agents": {
+    "fleetshift-coordinator": {
+      "description": "Owns FleetShift ticket lifecycle and delegates scoped implementation to native repository specialists.",
+      "mode": "primary",
+      "permissions": [
+        {
+          "action": "subagent",
+          "resource": "*",
+          "effect": "deny"
+        },
+        {
+          "action": "subagent",
+          "resource": "backend",
+          "effect": "allow"
+        },
+        {
+          "action": "subagent",
+          "resource": "frontend",
+          "effect": "allow"
+        }
+      ]
+    }
+  }
 }
