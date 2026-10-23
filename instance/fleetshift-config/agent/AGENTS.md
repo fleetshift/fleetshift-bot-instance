@@ -1,8 +1,27 @@
 # Fleetshift Instance — Additional Instructions
 
+## Native Subagents
+
+`opencode.json` selects `fleetshift-coordinator` as default primary agent, limits delegation depth to one, and grants it access only to `backend` and `frontend`. These are actual native subagents in `.opencode/agents/`, not instruction snippets. When workflow asks to load/reload `personas/<name>/prompt.md`, select and invoke matching native subagent instead of reading legacy persona paths.
+
+- Invoke `backend` only for scoped OCM Fleet backend/CLI/protobuf implementation.
+- Invoke `frontend` for scoped OCM Fleet UI or Scaffolding implementation, using only its matching repository section.
+- For OCM Fleet full-stack work, delegate sequentially when workers share checkout; avoid concurrent writers.
+- Coordinator owns Jira/task lifecycle, status, integration, review, commit/push, PR lifecycle, and cycle completion. Workers implement assigned scope, return evidence, and cannot recursively delegate.
+- Subagents share runner filesystem and inherited tools. Their role permissions do not provide separate OS sandboxes. Keep every brief inside approved repository/workspace boundaries and inspect changes before acting.
+- Current target-repository instructions take precedence over instance role guidance. Backend checkout rules never apply to Scaffolding.
+
+Use `/home/botuser/repos` for project checkouts, `/home/botuser/data` for persistent task data, and `/tmp/opencode` for task scratch files. These are the deployment-approved external roots; the runner workspace is `/home/botuser/app`.
+
+## Native Runtime Verification Override
+
+OpenCode 2.1.2 has no LSP runtime or tools. This overrides workflow and persona directives to use LSP, including LSP diagnostics before a commit: use the current repository's existing lint, typecheck, compiler, and test targets for diagnostics and verification, and report the commands actually run and their results. Do not claim LSP diagnostics were performed.
+
+The `browser` environment is not selected for this instance. For UI work, use browser/visual verification tools only if available; otherwise report the missing tooling and visual-verification gaps explicitly. Do not claim unavailable visual checks passed.
+
 ## Supported Repositories
 
-Select the repository from the ticket's canonical `repo:` label and `project-repos.json`. Apply only that repository's guidance below. The `backend` persona covers OCM Fleet backend/CLI work; the `frontend` persona covers OCM Fleet UI and Scaffolding work.
+Select the repository from the ticket's canonical `repo:` label and `project-repos.json`. Apply only that repository's guidance below. The `backend` subagent covers OCM Fleet backend/CLI work; the `frontend` subagent covers OCM Fleet UI and Scaffolding work.
 
 ### OCM Fleet (`stolostron/ocm-fleet`)
 
