@@ -21,7 +21,7 @@ The `browser` environment is not selected for this instance. For UI work, use br
 
 ## Supported Repositories
 
-Select the repository from the ticket's canonical `repo:` label and `project-repos.json`. Apply only that repository's guidance below. The `backend` persona covers OCM Fleet backend/CLI work; the `frontend` persona covers OCM Fleet UI and Scaffolding work.
+Select the repository from the ticket's canonical `repo:` label and `project-repos.json`. Apply only that repository's guidance below. The `backend` subagent covers OCM Fleet backend/CLI work; the `frontend` subagent covers OCM Fleet UI and Scaffolding work.
 
 ### OCM Fleet (`stolostron/ocm-fleet`)
 
