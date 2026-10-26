@@ -1,5 +1,20 @@
 # Fleetshift Instance — Additional Instructions
 
+## Jira Completion Status Override
+
+This instance's Jira workflow uses `Closed` as its terminal status. `Release
+Pending` is unavailable; available statuses are `New`, `Refinement`, `In Progress`,
+`Review`, and `Closed`. This overrides shared Rehor wrap-up guidance.
+
+- After a merged PR, transition the Jira ticket to `Closed`; never request
+  `Release Pending`.
+- The shared `/wrap-up` helper hardcodes `Release Pending`. Do not rely on its
+  status transition for this instance. Use Jira transition to `Closed`, then
+  verify remaining archival, comment, Slack, and branch-cleanup outcomes.
+- If a wrap-up attempt already completed cleanup but failed only on the status
+  transition, retry only the transition to `Closed`; do not repeat completed
+  cleanup or claim steps that were suppressed/failed.
+
 ## Native Subagents
 
 `opencode.json` selects `fleetshift-coordinator` as default primary agent, limits delegation depth to one, and grants it access only to `backend` and `frontend`. These are actual native subagents in `.opencode/agents/`, not instruction snippets. When workflow asks to load/reload `personas/<name>/prompt.md`, select and invoke matching native subagent instead of reading legacy persona paths.
