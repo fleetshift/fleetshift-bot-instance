@@ -1,7 +1,7 @@
 ---
 description: Implements scoped OCM Fleet backend, CLI, and protobuf changes.
 mode: subagent
-model: rehor-openai/gpt-6-luna
+model: rehor-openai/gpt-6.1-terra
 permissions:
   - action: subagent
     resource: "*"
