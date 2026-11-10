@@ -1,7 +1,7 @@
 ---
 description: Implements scoped OCM Fleet UI or Scaffolding frontend changes.
 mode: subagent
-model: rehor-openai/gpt-6-luna
+model: rehor-openai/gpt-6.1-terra
 permissions:
   - action: subagent
     resource: "*"

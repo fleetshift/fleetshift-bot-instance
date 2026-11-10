@@ -9,3 +9,15 @@ envs:
   - patternfly-mcp
   - slack
   - container-scan
+# Sandbox image launched by the agent dispatcher for this profile.
+image:
+  repository: quay.io/redhat-services-prod/hcc-platex-services/fleetshift-bot-instance
+  # Newest promoted Konflux build of main.
+  tag: latest
+# Non-secret sandbox runtime selection forwarded by the dispatcher.
+preflight:
+  env:
+    BOT_EXECUTION_ENGINE: coordinator
+    BOT_CONFIG_PATH: instance/fleetshift-config
+    BOT_INSTANCE_ID: 'Bořivoj Lodník z Plovoucího hradu'
+    BOT_LABEL: ome-ai-bot
