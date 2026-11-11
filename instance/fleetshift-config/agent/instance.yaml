@@ -21,3 +21,6 @@ preflight:
     BOT_CONFIG_PATH: instance/fleetshift-config
     BOT_INSTANCE_ID: 'Bořivoj Lodník z Plovoucího hradu'
     BOT_LABEL: ome-ai-bot
+    # Board has no sprints; collect non-sprint tickets like the in-cluster
+    # deployment did.
+    BOT_INCLUDE_BACKLOG: 'true'
