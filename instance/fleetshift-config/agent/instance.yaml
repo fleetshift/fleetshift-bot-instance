@@ -25,13 +25,12 @@ preflights:
       label: ome-ai-bot
       include_backlog: true
       email: platform-experience-services@redhat.com
-# Non-secret sandbox runtime selection forwarded by the dispatcher.
-preflight:
-  env:
-    BOT_EXECUTION_ENGINE: coordinator
-    BOT_CONFIG_PATH: instance/fleetshift-config
-    BOT_INSTANCE_ID: 'Bořivoj Lodník z Plovoucího hradu'
-    BOT_LABEL: ome-ai-bot
-    # Board has no sprints; collect non-sprint tickets like the in-cluster
-    # deployment did.
-    BOT_INCLUDE_BACKLOG: 'true'
+# Non-secret profile settings for dispatcher and sandbox runner.
+env:
+  BOT_EXECUTION_ENGINE: coordinator
+  BOT_CONFIG_PATH: instance/fleetshift-config
+  BOT_INSTANCE_ID: 'Bořivoj Lodník z Plovoucího hradu'
+  BOT_LABEL: ome-ai-bot
+  # Board has no sprints; collect non-sprint tickets like the in-cluster
+  # deployment did.
+  BOT_INCLUDE_BACKLOG: 'true'
