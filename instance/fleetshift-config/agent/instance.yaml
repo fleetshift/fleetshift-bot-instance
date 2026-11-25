@@ -34,3 +34,6 @@ env:
   # Board has no sprints; collect non-sprint tickets like the in-cluster
   # deployment did.
   BOT_INCLUDE_BACKLOG: 'true'
+sandbox:
+  env:
+    SLACK_WEBHOOK_URL: "${{ secret('ocm-fleet-rehor', 'SLACK_WEBHOOK_URL') }}"
