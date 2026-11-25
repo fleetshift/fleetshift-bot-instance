@@ -4,7 +4,7 @@ Custom bot runner instance built on [dev-bot](https://github.com/RedHatInsights/
 
 ## Native OpenCode V2
 
-FleetShift selects `runtime: opencode` and `provider: rehor-openai`. The primary `fleetshift-coordinator` uses `gpt-6.1-sol`; native `backend` and `frontend` implementation subagents use `gpt-6-luna`. All use medium reasoning. The merged shared runtime is pinned to `e6b0fda738c71b8be694b8711cf32e53eee59c9b` (OpenCode CLI/client 2.1.2). The workflow remains `jira-sprint` with `node`, `go`, `patternfly-mcp`, `slack`, and `container-scan` environments.
+FleetShift selects `runtime: opencode` and `provider: rehor-openai`. The primary `fleetshift-coordinator` uses `gpt-6.1-sol` for coordination, complex reasoning, and review; native `backend` and `frontend` implementation subagents use `gpt-6.1-terra` for substantial implementation. No simple bounded role exists, so no role currently selects the declared `gpt-6-luna`. All use medium reasoning. The merged shared runtime is pinned to `e6b0fda738c71b8be694b8711cf32e53eee59c9b` (OpenCode CLI/client 2.1.2). The workflow remains `jira-sprint` with `node`, `go`, `patternfly-mcp`, `slack`, and `container-scan` environments.
 
 Configuration has two owners:
 
@@ -15,7 +15,7 @@ Configuration has two owners:
 | `instance/fleetshift-config/agent/opencode.json` | Selects `fleetshift-coordinator` as primary, limits delegation depth to one, and permits delegation only to `backend` and `frontend`. |
 | `instance/fleetshift-config/agent/.opencode/agents/{fleetshift-coordinator,backend,frontend}.md` | Native primary coordinator and two actual subagents. Existing backend/frontend persona guidance is carried in their agent system prompts, with repository scope and worker boundaries. |
 | `instance/fleetshift-config/agent/mcp.json` | Jira endpoint reference plus PatternFly's installed `hcc-pf-mcp` executable; shared memory and optional servers still come from the runner. |
-| `instance/fleetshift-config/opencode-deployment.json` | Deployment-owned native Responses provider, declared Sol and Luna models with medium reasoning, environment references, empty `packages` list, and approved external directories. Baked into the image. |
+| `instance/fleetshift-config/opencode-deployment.json` | Deployment-owned native Responses provider, declared Sol, Terra, and Luna models with medium reasoning, environment references, empty `packages` list, and approved external directories. Baked into the image. |
 
 The runner workspace is `/home/botuser/app`. External access is limited to `/home/botuser/repos` (project checkouts), `/home/botuser/data` (persistent state), and `/tmp/opencode` (task scratch). The coordinator renders these as ordered permissions and a global native policy ceiling; profile/project agent grants cannot widen that ceiling. No additional providers or package plugins are configured. The empty legacy instance `skills/` directory has no custom skills to migrate; shared/workflow/environment helper installation remains runtime-owned.
 
@@ -30,7 +30,7 @@ REHOR_MODEL_PROXY_URL=http://devbot-proxy:8450/v1
 REHOR_MODEL_PROXY_TOKEN=rehor-runtime
 ```
 
-The token is a non-secret client placeholder; the shared OpenAI gateway injects upstream credentials. The NetworkPolicy allows TCP/8450 only to the existing proxy selector. The shared proxy's `OPENAI_ALLOWED_MODELS` must include `gpt-6-luna`; `VERTEX_ALLOWED_MODELS` does not authorize OpenAI models. Required template parameters `GCP_PROJECT_ID`, `GCP_REGION`, and `VERTEX_ALLOWED_MODELS` remain as a deprecated caller contract because existing GitOps supplies them. They do not select FleetShift's provider or model. Claude-specific workload environment entries are removed; unrelated identity, repository, scheduling, and build settings are retained.
+The token is a non-secret client placeholder; the shared OpenAI gateway injects upstream credentials. The NetworkPolicy allows TCP/8450 only to the existing proxy selector. The shared proxy's `OPENAI_ALLOWED_MODELS` must include `gpt-6.1-sol` and `gpt-6.1-terra`, the models this profile's agents select; `VERTEX_ALLOWED_MODELS` does not authorize OpenAI models. Required template parameters `GCP_PROJECT_ID`, `GCP_REGION`, and `VERTEX_ALLOWED_MODELS` remain as a deprecated caller contract because existing GitOps supplies them. They do not select FleetShift's provider or model. Claude-specific workload environment entries are removed; unrelated identity, repository, scheduling, and build settings are retained.
 
 ## Supported repositories
 
@@ -69,8 +69,8 @@ The pinned repo loader merges repository keys additively: removing a key from th
 Remote profile sync is independent of the image/template rollout. **Do not let the current Claude/Python runner consume this OpenCode profile.** Publishing the profile to the tracked config branch can affect the next cycle even while an old image is still running.
 
 1. Before publishing the migration to the tracked config branch, pause FleetShift and prevent KEDA from restarting the old runner. Record the previous immutable image digest, template/engine settings, and compatible instance/config revision. Drain any active cycle.
-2. Build and publish a fresh instance image with the pinned `dev-bot` gitlink. Reconcile the matching template, image, and profile together. Confirm `BOT_EXECUTION_ENGINE=coordinator`, the deployment-config path, proxy environment, TCP/8450 egress, and the proxy's Luna allowlist. Changing remote config or restarting an old image cannot install the V2 runtime or baked deployment config.
-3. Start a fresh runner filesystem with the new image. Verify the synced profile revision, Sol coordinator and Luna implementation agents, native delegation, environment tools, MCP connectivity, and exact two-entry repository map before accepting work. Preserve the existing GitOps identity and `ome-ai-bot` label override; the template's label default is not the live selection.
+2. Build and publish a fresh instance image with the pinned `dev-bot` gitlink. Reconcile the matching template, image, and profile together. Confirm `BOT_EXECUTION_ENGINE=coordinator`, the deployment-config path, proxy environment, TCP/8450 egress, and the proxy's `OPENAI_ALLOWED_MODELS` entries for Sol and Terra. Changing remote config or restarting an old image cannot install the V2 runtime or baked deployment config.
+3. Start a fresh runner filesystem with the new image. Verify the synced profile revision, Sol coordinator and Terra implementation agents, native delegation, environment tools, MCP connectivity, and exact two-entry repository map before accepting work. Preserve the existing GitOps identity and `ome-ai-bot` label override; the template's label default is not the live selection.
 4. Run one controlled staging `--once` cycle, then check task/terminal state, transcript, usage/cost accounting, tool-call budget, MCP behavior, and process cleanup before resuming the schedule.
 
 To roll back, pause/drain the runner and hold scheduling again. Restore a Claude-compatible profile on the config repository's tracked default branch (for example, revert this migration), restore the recorded immutable Claude image and prior Python engine/template environment together, then start a fresh runner and verify its effective config before resuming. Image-only rollback is insufficient while remote sync still serves the OpenCode profile. This repository change does not deploy or validate a live rollout.
